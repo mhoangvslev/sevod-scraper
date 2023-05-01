@@ -36,6 +36,8 @@ public class Main {
                 "List of known URI prefixes (comma-separated)");
         Option graph = new Option("g", "graph", true,
                 "Graph (only for SPARQL endpoint)");
+                graph.setArgs(1000);
+                graph.setValueSeparator(',');
         Option extentType = new Option("t", "extentType", true,
                 "Extent type (mbb-union-qtN, for geospatial RDF)");
         Option polygon = new Option("P", "polygon", true,
@@ -157,8 +159,8 @@ public class Main {
             SparqlScraper scraper = new SparqlScraper();
 
             if (line.hasOption(graph.getOpt()) || line.hasOption(graph.getLongOpt())) {
-                String b = line.getOptionValue(graph.getOpt());
-                scraper.setBaseGraph(b);
+                String[] graphs = line.getOptionValues(graph.getOpt());
+                scraper.setBaseGraphs(graphs);
             }
 
             if (line.hasOption(prefixes.getOpt()) || line.hasOption(prefixes.getLongOpt())) {

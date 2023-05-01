@@ -22,47 +22,56 @@ import java.util.Set;
 public class SparqlMetadataExtractor {
 
     private String endpoint;
-    private String graph;
+    private String[] graphs;
     private Set<String> knownPrefixes;
     private ValueFactory vf = ValueFactoryImpl.getInstance();
 
-    public SparqlMetadataExtractor(String endpoint, String graph, Set<String> knownPrefixes) {
+    public SparqlMetadataExtractor(String endpoint, String[] baseGraph, Set<String> knownPrefixes) {
         this.endpoint = endpoint;
-        this.graph = graph;
+        this.graphs = baseGraph;
         this.knownPrefixes = knownPrefixes;
     }
 
     public void writeMetadata(RDFWriter writer) throws RDFHandlerException {
 
-        Resource dataset = vf.createBNode();
+        BNode rootDataset = vf.createBNode("DatasetRoot");
 
         writer.handleNamespace(VOID.PREFIX, VOID.NAMESPACE);
         writer.handleNamespace(SEVOD.PREFIX, SEVOD.NAMESPACE);
         writer.handleNamespace(XMLSchema.PREFIX, XMLSchema.NAMESPACE);
 
-        writer.handleStatement(vf.createStatement(dataset, RDF.TYPE, VOID.DATASET));
+        writer.handleStatement(vf.createStatement(rootDataset, RDF.TYPE, VOID.DATASET));
 
         QueryEvaluator eval = new QueryEvaluator(endpoint);
         QueryTransformer qt = new QueryTransformer();
 
-        List<IRI> predicates = eval.iris(qt.from(Queries.predicates).setGraph(graph).toString(), Queries.predicate_var);
+        int datasetId = 0;
+        for (String graph: graphs) {
+            datasetId++;
 
-        for (IRI predicate: predicates) {
-            Metadata metadata = new PredicateMetadata(predicate, graph, knownPrefixes);
+            Resource subdataset = vf.createBNode("Dataset"+datasetId);
+            writer.handleStatement(vf.createStatement(subdataset, RDF.TYPE, VOID.DATASET));
+            writer.handleStatement(vf.createStatement(subdataset, VOID.SUBSET, rootDataset));
+
+            List<IRI> predicates = eval.iris(qt.from(Queries.predicates).setGraph(graph).toString(), Queries.predicate_var);
+
+            for (IRI predicate: predicates) {
+                Metadata metadata = new PredicateMetadata(predicate, graph, knownPrefixes);
+                metadata.processEndpoint(endpoint);
+                metadata.serializeMetadata(subdataset, writer);
+            }
+
+            List<IRI> classes = eval.iris(qt.from(Queries.classes).setGraph(graph).toString(), Queries.class_var);
+
+            for (IRI clazz: classes) {
+                Metadata metadata = new ClassMetadata(clazz, graph, knownPrefixes);
+                metadata.processEndpoint(endpoint);
+                metadata.serializeMetadata(subdataset, writer);
+            }
+
+            Metadata metadata = new DatasetMetadata(graph);
             metadata.processEndpoint(endpoint);
-            metadata.serializeMetadata(dataset, writer);
+            metadata.serializeMetadata(subdataset, writer);
         }
-
-        List<IRI> classes = eval.iris(qt.from(Queries.classes).setGraph(graph).toString(), Queries.class_var);
-
-        for (IRI clazz: classes) {
-            Metadata metadata = new ClassMetadata(clazz, graph, knownPrefixes);
-            metadata.processEndpoint(endpoint);
-            metadata.serializeMetadata(dataset, writer);
-        }
-
-        Metadata metadata = new DatasetMetadata(graph);
-        metadata.processEndpoint(endpoint);
-        metadata.serializeMetadata(dataset, writer);
     }
 }

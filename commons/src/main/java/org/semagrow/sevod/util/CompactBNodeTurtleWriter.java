@@ -223,7 +223,7 @@ public class CompactBNodeTurtleWriter extends TurtleWriter {
                 // check if this BNode has been processed before
                 // if so the previous id was lost due to the shorthand notation
                 // writing it again would result in two distinct BNodes
-                if (seenBNodes.contains(pendingBNode)) {
+                if (seenBNodes.contains(pendingBNode) && !pendingBNode.getID().equals("DatasetRoot")) {
                     throw new IllegalStateException("Same BNode may occur only once in object position: " + st);
                 } else {
                     seenBNodes.add(pendingBNode);

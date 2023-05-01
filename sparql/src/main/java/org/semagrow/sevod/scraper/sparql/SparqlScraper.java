@@ -7,6 +7,7 @@ import org.semagrow.sevod.util.CompactBNodeTurtleWriter;
 
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.Set;
 
@@ -15,11 +16,15 @@ import java.util.Set;
  */
 public class SparqlScraper implements Scraper {
 
-    private String baseGraph = null;
+    private String[] baseGraph = null;
     private Set<String> knownPrefixes = new HashSet<>();
 
     public void setBaseGraph(String baseGraph) {
-        this.baseGraph = baseGraph;
+        this.baseGraph = new String[] { baseGraph };
+    }
+
+    public void setBaseGraphs(String[] graphs) {
+        this.baseGraph = graphs;
     }
 
     public void setKnownPrefixes(Set<String> knownPrefixes) {
