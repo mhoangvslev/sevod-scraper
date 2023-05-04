@@ -44,6 +44,7 @@ do
         # Make --graph=e1,e2...en
         sources=""
         n_entities=$(( ($batch_id+1)*10 ))
+
         for item in $(seq 0 $(($n_entities-1)) )
         do
             sources+="http://www.vendor$item.fr/,"
@@ -52,9 +53,10 @@ do
 
         # Remove the trailing comma and whitespace from the end of the string
         sources=${sources%?}
+        common_prefixes="$sources,http://www4.wiwiss.fu-berlin.de"
 
         echo "Generating summary for endpoint $container_endpoint"
-        mvn -q exec:java -pl "cli/" -Dexec.mainClass="org.semagrow.sevod.scraper.cli.Main" -Dexec.args="--sparql --input $container_endpoint --graph=$sources --output $summary_file" || exit -1
+        mvn -q exec:java -pl "cli/" -Dexec.mainClass="org.semagrow.sevod.scraper.cli.Main" -Dexec.args="--sparql --input $container_endpoint --graph=$sources --prefixes $common_prefixes --output $summary_file" || exit -1
     fi
 done
 elif [ "$mode" = "hibiscus" ]; then
