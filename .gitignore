@@ -3,3 +3,4 @@
 *.iml
 target
 generateMetadata.sh
+.m2/
