@@ -14,6 +14,8 @@ public class QueryTransformer {
     public QueryTransformer setGraph(String graph) {
         if (graph != null) {
             qStr = qStr.replace(Queries.graph_var, "<" + graph + ">");
+        } else {
+            qStr = qStr.replace("graph ?g", "").replace("{  {", "{").replace("} }", "}");
         }
         return this;
     }

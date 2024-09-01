@@ -46,9 +46,11 @@ public class SparqlMetadataExtractor {
         QueryTransformer qt = new QueryTransformer();
 
         int datasetId = 0;
-        for (String graph: graphs) {
-            datasetId++;
+        if (graphs.length == 0) {
+            String graph = null;
 
+            datasetId++;
+            
             Resource subdataset = vf.createBNode("Dataset"+datasetId);
             writer.handleStatement(vf.createStatement(subdataset, RDF.TYPE, VOID.DATASET));
             writer.handleStatement(vf.createStatement(subdataset, VOID.SUBSET, rootDataset));
@@ -72,6 +74,34 @@ public class SparqlMetadataExtractor {
             Metadata metadata = new DatasetMetadata(graph);
             metadata.processEndpoint(endpoint);
             metadata.serializeMetadata(subdataset, writer);
+        } else {
+            for (String graph: graphs) {
+                datasetId++;
+    
+                Resource subdataset = vf.createBNode("Dataset"+datasetId);
+                writer.handleStatement(vf.createStatement(subdataset, RDF.TYPE, VOID.DATASET));
+                writer.handleStatement(vf.createStatement(subdataset, VOID.SUBSET, rootDataset));
+    
+                List<IRI> predicates = eval.iris(qt.from(Queries.predicates).setGraph(graph).toString(), Queries.predicate_var);
+    
+                for (IRI predicate: predicates) {
+                    Metadata metadata = new PredicateMetadata(predicate, graph, knownPrefixes);
+                    metadata.processEndpoint(endpoint);
+                    metadata.serializeMetadata(subdataset, writer);
+                }
+    
+                List<IRI> classes = eval.iris(qt.from(Queries.classes).setGraph(graph).toString(), Queries.class_var);
+    
+                for (IRI clazz: classes) {
+                    Metadata metadata = new ClassMetadata(clazz, graph, knownPrefixes);
+                    metadata.processEndpoint(endpoint);
+                    metadata.serializeMetadata(subdataset, writer);
+                }
+    
+                Metadata metadata = new DatasetMetadata(graph);
+                metadata.processEndpoint(endpoint);
+                metadata.serializeMetadata(subdataset, writer);
+            }
         }
     }
 }

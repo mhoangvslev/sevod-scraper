@@ -16,7 +16,7 @@ import java.util.Set;
  */
 public class SparqlScraper implements Scraper {
 
-    private String[] baseGraph = null;
+    private String[] baseGraph = new String[0];
     private Set<String> knownPrefixes = new HashSet<>();
 
     public void setBaseGraph(String baseGraph) {

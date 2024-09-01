@@ -49,8 +49,11 @@ public class DatasetMetadata implements Metadata {
 
     @Override
     public void serializeMetadata(Resource dataset, RDFWriter writer) throws RDFHandlerException {
-        // writer.handleStatement(vf.createStatement(dataset, VOID.SPARQLENDPOINT, vf.createIRI(endpoint)));
-        writer.handleStatement(vf.createStatement(dataset, VOID.SPARQLENDPOINT, vf.createIRI(graph)));
+        if (graph == null) {
+            writer.handleStatement(vf.createStatement(dataset, VOID.SPARQLENDPOINT, vf.createIRI(endpoint)));
+        } else {
+            writer.handleStatement(vf.createStatement(dataset, VOID.SPARQLENDPOINT, vf.createIRI(graph)));
+        }
         writer.handleStatement(vf.createStatement(dataset, VOID.TRIPLES, vf.createLiteral(triples)));
         writer.handleStatement(vf.createStatement(dataset, VOID.PROPERTIES, vf.createLiteral(propCount)));
         writer.handleStatement(vf.createStatement(dataset, VOID.CLASSES, vf.createLiteral(clzCount)));
